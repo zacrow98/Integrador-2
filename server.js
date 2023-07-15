@@ -1,5 +1,5 @@
 const express = require('express')
-const {conectToDB, diconectFromMongoDB} = require('./src/mongodb.js')
+const { connectToDB, disconnectFromMongoDB } = require("./src/mongodb");
 const app = express()
 const PORT = process.env.PORT || 3000
 
@@ -16,33 +16,33 @@ app.get('/', (req, res) =>{
 
 app.get('/prendas', async(req, res) =>{
     try{
-        const client = await conectToDB()
+        const client = await connectToDB()
         if(!client){
             res.status(500).send('Error al conectar a MongoDB')
         }
 
-        const db = client.db('ropa-shop')
-        const ropero = await db.collection('ropa-shop').find().toArray()
+        const db = client.db('ropashop')
+        const ropero = await db.collection('ropashop').find().toArray()
         res.json(ropero)
 
     }catch(error){
         res.status(500).send('Error al obtener los datos')
     }finally{
-        await diconectFromMongoDB()
+        await disconnectFromMongoDB()
     }
 })
 
 // OBTENER ROPA POR ID
-app.get('/prendas/:id', async (req, res) =>{
-    const ropaId = parseInt(req.params.id)
+app.get('/prendas/:codigo', async (req, res) =>{
+    const prendaId = parseInt(req.params.codigo)
     try{
-        const client = await conectToDB()
+        const client = await connectToDB()
         if(!client){
             res.status(500).send('Error al conectar a MongoDB')
         }
 
-        const db = client.db('ropa-shop')
-        const prenda = await db.collection('ropa-shop').findOne({id: ropaId})
+        const db = client.db("ropashop")
+        const prenda = await db.collection("ropashop").findOne({codigo: prendaId})
         if(prenda){
             res.json(prenda)
         }else{
@@ -52,7 +52,7 @@ app.get('/prendas/:id', async (req, res) =>{
     }catch(error){
         res.status(500).send('Error al obtener los datos')
     }finally{
-        await diconectFromMongoDB()
+        await disconnectFromMongoDB()
     }
 })
 
@@ -61,13 +61,13 @@ app.get('/prendas/nombre/:nombre', async (req, res) =>{
     const prendaQuery = req.params.nombre
     let prendaNombre = RegExp(prendaQuery, "i")
     try{
-        const client = await conectToDB()
+        const client = await connectToDB()
         if(!client){
             res.status(500).send('Error al conectar a MongoDB')
         }
 
-        const db = client.db('ropa-shop')
-        const prenda = await db.collection('ropa-shop').find({nombre: prendaNombre}).toArray()
+        const db = client.db('ropashop')
+        const prenda = await db.collection('ropashop').find({nombre: prendaNombre}).toArray()
 
         if(prenda.length > 0){
             res.json(prenda)
@@ -78,21 +78,21 @@ app.get('/prendas/nombre/:nombre', async (req, res) =>{
     }catch(error){
         res.status(500).send('Error al obtener los datos')
     }finally{
-        await diconectFromMongoDB()
+        await disconnectFromMongoDB()
     }
 })
 
 // OBTENER LA prenda POR PRECIO
 app.get('/prendas/precio/:precio', async(req, res) =>{
-    const prendaPrecio = parseInt(req.params.level)
+    const prendaPrecio = parseInt(req.params.precio)
     try{
-        const client = await conectToDB()
+        const client = await connectToDB()
         if(!client){
             res.status(500).send('Error al conectar a MongoDB')
             return
         }
-        const db = client.db('ropa-shop')
-        const prenda = await db.collection('ropa-shop').find({ nivel: {$gte: prendaPrecio}}).toArray()
+        const db = client.db('ropashop')
+        const prenda = await db.collection('ropashop').find({ precio: {$gte: prendaPrecio}}).toArray()
 
         if(prenda.length > 0){
             res.json(prenda)
@@ -102,10 +102,35 @@ app.get('/prendas/precio/:precio', async(req, res) =>{
     }catch(error){
         res.status(500).send('Error al obtener los precios de la base de datos')
     }finally{
-        await diconectFromMongoDB()
+        await disconnectFromMongoDB()
     }
 })
 
+// OBTENER PRENDA POR CATEGORIA
+app.get('/prendas/categoria/:categoria', async (req, res) =>{
+    const prendaQuery = req.params.categoria
+    let prendaCategoria = RegExp(prendaQuery, "i")
+    try{
+        const client = await connectToDB()
+        if(!client){
+            res.status(500).send('Error al conectar a MongoDB')
+        }
+
+        const db = client.db('ropashop')
+        const prenda = await db.collection('ropashop').find({categoria: prendaCategoria}).toArray()
+
+        if(prenda.length > 0){
+            res.json(prenda)
+        }else{
+            res.status(404).send('Error al obtener la prenda')
+        }
+
+    }catch(error){
+        res.status(500).send('Error al obtener los datos')
+    }finally{
+        await disconnectFromMongoDB()
+    }
+})
 
 // CREAR UNA NUEVA PRENDA
 app.post('/prendas', async(req, res)=>{
@@ -115,14 +140,14 @@ app.post('/prendas', async(req, res)=>{
             res.status(400).send('Error al crear nuevo prenda')
         }
 
-        const client = await conectToDB()
+        const client = await connectToDB()
         if(!client){
             res.status(500).send('Error al conectar a MongoDB')
             return
         }
 
-        const db = client.db('ropa-shop')
-        const collection = db.collection('ropa-shop')
+        const db = client.db('ropashop')
+        const collection = db.collection('ropashop')
         await collection.insertOne(nuevaprenda)
             console.log('prenda creada exitosamente');
         res.status(201).send(nuevaprenda)
@@ -130,7 +155,7 @@ app.post('/prendas', async(req, res)=>{
     }catch(error){
         res.status(500).send('Error al agregar ${nuevaprenda.nombre}')
     }finally{
-        await diconectFromMongoDB()
+        await disconnectFromMongoDB()
     }
 })
 
@@ -143,14 +168,14 @@ app.put('/prendas/:id', async(req, res)=>{
             res.status(400).send('Error al ingresar los nuevos datos')
         }
 
-        const client = await conectToDB()
+        const client = await connectToDB()
         if(!client){
             res.status(500).send('Error al conectar a MongoDB')
             return
         }
 
-        const db = client.db('ropa-shop')
-        const collection = db.collection('ropa-shop')
+        const db = client.db('ropashop')
+        const collection = db.collection('ropashop')
 
         await collection.updateOne({id: prendaId}),{$set: nuevosDatos}
             console.log('prenda modificada');
@@ -171,19 +196,47 @@ app.patch('/prendas', async(req, res) =>{
         if(!nuevoDato){
             res.status(400).send('Error en el formato de datos a modificar')
         }
-        const client = await conectToDB()
+        const client = await connectToDB()
         if(!client){
             res.status(500).send('Error al conectar a MongoDB')
         }
-        const db = client.db('ropa-shop')
-        const collection = db.collection('ropa-shop')
+        const db = client.db('ropashop')
+        const collection = db.collection('ropashop')
 
         await collection.updateOne({id: prendaId},{$set: nuevoDato})
             console.log('prenda modificada correctamente');
     }catch(error){
         res.status(500).send('Error al modificar la prenda')
     }finally{
-        await diconectFromMongoDB()
+        await disconnectFromMongoDB()
+    }
+})
+
+app.delete('/prendas', async(req, res) =>{
+    const prendaId = parseInt(req.params.codigo)
+    try{
+        if(!prendaId){
+            res.status(400).send('No se encontro la prenda')
+        }
+        
+        const client = await connectToDB()
+        if(!client){
+            res.status(500).send('Error al conectar a MongoDB')
+        }
+        const db = client.db('ropashop')
+        const collection = db.collection('ropashop')
+
+        await collection.deleteOne({id: prendaId})
+        if(resultado.deleteCount === 0){
+            res.status(404).send('No se encontro ninguna prenda con esa id')
+        }else{
+            console.log('Prenda eliminada')
+            res.status(204).send()
+        }
+    }catch(error){
+        res.status(500).send('Error al eliminar la prenda')
+    }finally {
+        await disconnectFromMongoDB()
     }
 })
 

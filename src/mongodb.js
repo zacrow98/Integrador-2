@@ -1,30 +1,30 @@
-const dotenv = require("dotenv");
-dotenv.config(); // Carga las variables de entorno desde el archivo .env
+const dotenv = require("dotenv")
+dotenv.config()
 
-const { MongoClient } = require("mongodb");
+const { MongoClient } = require("mongodb")
 
-const URI = process.env.MONGODB_URLSTRING; // Obtiene la URL de conexión a MongoDB desde las variables de entorno
-const client = new MongoClient(URI); // Crea una instancia del cliente de MongoDB
+const URI = process.env.MONGODB_URLSTRING
+const client = new MongoClient(URI)
 
 const connectToDB = async () => {
   try {
-    await client.connect(); // Conecta al cliente de MongoDB al servidor
+    await client.connect()
     console.log("Conectado a MongoDB");
-    return client; // Retorna el cliente conectado
+    return client
   } catch (error) {
-    console.error("Error al conectar a MongoDB:", error);
-    return null; // Retorna null en caso de error
+    console.error("Error al conectar a MongoDB:", error)
+    return null
   }
 };
 
 const disconnectFromMongoDB = async () => {
   try {
-    await client.close(); // Cierra la conexión con el servidor de MongoDB
-    console.log("Desconectado de MongoDB");
+    await client.close()
+    console.log("Desconectado de MongoDB")
   } catch (error) {
-    console.error("Error al desconectar de MongoDB:", error);
-    return null; // Retorna null en caso de error
+    console.error("Error al desconectar de MongoDB:", error)
+    return null
   }
-};
+}
 
-module.exports = { connectToDB, disconnectFromMongoDB };
+module.exports = { connectToDB, disconnectFromMongoDB }
