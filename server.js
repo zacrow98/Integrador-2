@@ -212,22 +212,24 @@ app.patch('/prendas', async(req, res) =>{
     }
 })
 
-app.delete('/prendas', async(req, res) =>{
+
+app.delete('/prendas/delete/:codigo', async(req, res) =>{
     const prendaId = parseInt(req.params.codigo)
     try{
         if(!prendaId){
             res.status(400).send('No se encontro la prenda')
+            return
         }
         
         const client = await connectToDB()
         if(!client){
             res.status(500).send('Error al conectar a MongoDB')
         }
+        
         const db = client.db('ropashop')
         const collection = db.collection('ropashop')
-
-        await collection.deleteOne({id: prendaId})
-        if(resultado.deleteCount === 0){
+        const resultado = await collection.deleteOne({codigo: prendaId})
+        if(resultado.deletedCount === 0){
             res.status(404).send('No se encontro ninguna prenda con esa id')
         }else{
             console.log('Prenda eliminada')
@@ -235,13 +237,14 @@ app.delete('/prendas', async(req, res) =>{
         }
     }catch(error){
         res.status(500).send('Error al eliminar la prenda')
-    }finally {
+    }finally{
         await disconnectFromMongoDB()
     }
 })
 
 // Iniciar el servidor
 app.listen(PORT, () => {
+    
     console.log(`Servidor escuchando en el puerto ${PORT}`);
   });
   
